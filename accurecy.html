@@ -1,0 +1,2356 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Enhanced Quiz Application</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha3/dist/css/bootstrap.min.css" rel="stylesheet" />
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <style>
+    body {
+      background-color: #1a1a2e;
+      font-family: "Poppins", sans-serif;
+      color: #eaeaea;
+    }
+
+    .quiz-container {
+      max-width: 800px;
+      margin: 50px auto;
+      padding: 30px;
+      border-radius: 15px;
+      background: linear-gradient(145deg, #2e2e42, #24243e);
+      box-shadow: 0 8px 30px rgba(0, 0, 0, 0.4);
+      animation: fadeIn 1s;
+    }
+
+    @keyframes fadeIn {
+      from {
+        opacity: 0;
+      }
+      to {
+        opacity: 1;
+      }
+    }
+
+    .btn-category {
+      margin: 10px;
+      width: 45%;
+      padding: 15px;
+      font-size: 1.2rem;
+      background-color: #3f72af;
+      border: none;
+      color: white;
+      border-radius: 8px;
+      transition: transform 0.2s, background-color 0.2s;
+    }
+
+    .btn-category:hover {
+      background-color: #112d4e;
+      transform: scale(1.05);
+    }
+
+    .quiz-title {
+      text-align: center;
+      font-weight: bold;
+      font-size: 2.5rem;
+      color: #f9f871;
+    }
+
+    .level-buttons button {
+      margin: 10px;
+      width: 30%;
+      padding: 15px;
+      font-size: 1.1rem;
+      border: none;
+      border-radius: 8px;
+      background-color: #6a0572;
+      color: white;
+      transition: transform 0.2s, background-color 0.2s;
+    }
+
+    .level-buttons button:hover {
+      background-color: #4a034a;
+      transform: scale(1.05);
+    }
+
+    .result-score {
+      font-size: 2rem;
+      font-weight: bold;
+      color: #00adb5;
+    }
+
+    .chart-container {
+      width: 100%;
+      max-width: 600px;
+      margin: 20px auto;
+    }
+
+    #myChart {
+      background: #2e2e42;
+      border-radius: 10px;
+      padding: 20px;
+    }
+
+    .btn {
+      border-radius: 8px;
+      display: grid;
+      grid-template-columns: auto;
+      padding: 10px;
+      margin: 10px;
+      width: 100%;
+      transition: transform 0.2s, background-color 0.2s;
+    }
+
+    /* .btn-r{
+      border-radius: 8px;
+      padding: 10px;
+      margin: 10px;
+      background-color:  gray;
+      color: white;
+      transition: transform 0.2s, background-color 0.2s;
+    } */
+
+    .btn:hover {
+      transform: scale(1.05);
+    }
+  </style>
+</head>
+
+<body>
+  <div class="container">
+    <div class="quiz-container">
+      <h2 class="quiz-title">Enhanced Quiz Application</h2>
+
+      <!-- Category Selection -->
+      <div id="category-selection" class="text-center">
+        <h4>Select a Category</h4>
+        <div>
+          <button class=" btn-primary btn-category" onclick="startQuiz('html')">HTML</button>
+          <button class=" btn-primary btn-category" onclick="startQuiz('css')">CSS </button>
+          <button class=" btn-primary btn-category" onclick="startQuiz('javascript')">JavaScript</button>
+          <button class=" btn-primary btn-category" onclick="startQuiz('python')">Python</button>
+          <button class=" btn-primary btn-category" onclick="startQuiz('java')">Java</button>
+          <button class=" btn-primary btn-category" onclick="startQuiz('csharp')">C#</button>
+          <button class=" btn-primary btn-category" onclick="startQuiz('sql')">SQL</button>
+          <button class=" btn-primary btn-category" onclick="startQuiz('php')">PHP</button>
+          <button class=" btn-primary btn-category" onclick="startQuiz('ruby')">Ruby</button>
+          <button class=" btn-primary btn-category" onclick="startQuiz('react')">React</button>
+        </div>
+      </div>
+
+      <!-- Difficulty Level Selection -->
+      <div id="level-selection" class="text-center d-none">
+        <h4>Select Difficulty Level</h4>
+        <div class="level-buttons">
+          <button  onclick="loadQuiz('easy')">Easy</button>
+          <button  onclick="loadQuiz('medium')">Medium</button>
+          <button  onclick="loadQuiz('hard')">Hard</button>
+        </div>
+      </div>
+
+      <!-- Quiz Section -->
+      <div id="quiz-section" class="d-none">
+        <div class="d-flex justify-content-between align-items-center">
+          <h4 id="question"></h4>
+          <span id="timer">Time Left: 30s</span>
+        </div>
+        <div class="progress my-3">
+          <div id="progress-bar" class="progress-bar" style="width: 100%;"></div>
+        </div>
+        <div id="answers" class="mt-3"></div>
+        <button class="btn btn-primary mt-3" onclick="nextQuestion()">Next</button>
+      </div>
+
+      <!-- Result Section -->
+      <div id="result-section" class="text-center d-none">
+        <h4>Your Score: <span id="score" class="result-score"></span></h4>
+        <h5>Accuracy</h5>
+        <div class="chart-container">
+          <canvas id="myChart"></canvas>
+        </div>
+        <button class=" btn btn-secondary" onclick="restartQuiz()">Restart</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const quizData = {
+      html: {
+        easy: [
+          {question: "What does HTML stand for?",options: ["Hyper Text Markup Language","Home Tool Markup Language","Hyperlinks and Text Markup Language",],answer: "Hyper Text Markup Language",},
+          {question: "Which tag is used for the largest heading in HTML?",options: ["<h6>", "<h1>", "<header>"],answer: "<h1>",},
+          {question: "What is the correct HTML tag for a paragraph?",options: ["<para>", "<p>", "<par>"],answer: "<p>",},
+          {question: "Which tag is used to insert an image in HTML?",options: ["<img>", "<image>", "<pic>"],answer: "<img>",},
+          {question: "Which tag is used to create a hyperlink in HTML?",options: ["<a>", "<link>", "<href>"],answer: "<a>",},
+          {question:"What is the correct HTML element for inserting a line break?",options: ["<br>", "<lb>", "<break>"],answer: "<br>",},
+          {question:"Which attribute is used to provide an alternative text for an image?",options: ["alt", "src", "title"],answer: "alt",},
+          {question: "What is the purpose of the <title> tag in HTML?",options: ["To define the document's title","To create a title in the body","To set the page's URL",],answer: "To define the document's title",},
+          { question: "Which tag is used to create a numbered list?",options: ["<ol>", "<ul>", "<li>"],answer: "<ol>",},
+          {question: "Which tag is used to create an unordered list?",options: ["<ol>", "<ul>", "<li>"],answer: "<ul>",},
+          {question: "Which HTML element is used to display a table row?",options: ["<tr>", "<row>", "<td>"],answer: "<tr>",},
+          {question:"What is the correct syntax for adding a comment in HTML?",options: ["<!-- Comment -->", "<-- Comment -->", "// Comment"],answer: "<!-- Comment -->",},
+          {question: "What is the correct HTML tag for a checkbox?",options: ["<checkbox>", "<input type='checkbox'>", "<check>"],answer: "<input type='checkbox'>",},
+          {question:"Which attribute specifies the URL of a linked document?",options: ["href", "src", "link"],answer: "href",},
+          {question:"Which attribute is used to define inline styles in HTML?",options: ["style", "css", "inline"],answer: "style",},
+          {question: "Which tag is used to define a table header?",options: ["<thead>", "<th>", "<header>"],answer: "<th>",},
+          {question: "What is the default alignment of text in HTML?",options: ["Left", "Center", "Right"],answer: "Left",},
+          {question:"Which HTML attribute is used to specify that an input field must be filled out?",options: ["required", "mandatory", "validate"],answer: "required",},
+          {question: "What does the <strong> tag do?",options: ["Makes text bold","Underlines text","Italicizes text",],answer: "Makes text bold",},
+          {question: "What is the purpose of the <meta> tag in HTML?",options: ["To specify metadata about the document","To add styles","To include scripts",], answer: "To specify metadata about the document",},
+        ],
+        medium: [
+          {
+            question:
+              "Which attribute is used to uniquely identify an HTML element?",
+            options: ["class", "id", "name"],
+            answer: "id",
+          },
+          {
+            question: "What does HTML stand for?",
+            options: [
+              "Hyper Text Markup Language",
+              "Home Tool Markup Language",
+              "Hyperlinks and Text Markup Language",
+            ],
+            answer: "Hyper Text Markup Language",
+          },
+          {
+            question:
+              "Which HTML element is used to define the title of a document?",
+            options: ["<title>", "<head>", "<meta>"],
+            answer: "<title>",
+          },
+          {
+            question: "Which HTML element is used to create a hyperlink?",
+            options: ["<a>", "<link>", "<href>"],
+            answer: "<a>",
+          },
+          {
+            question:
+              "Which HTML element is used to define an unordered list?",
+            options: ["<ul>", "<ol>", "<li>"],
+            answer: "<ul>",
+          },
+          {
+            question: "Which HTML element is used to define a table row?",
+            options: ["<tr>", "<td>", "<th>"],
+            answer: "<tr>",
+          },
+          {
+            question:
+              "Which HTML attribute is used to specify an alternate text for an image, if the image cannot be displayed?",
+            options: ["alt", "src", "title"],
+            answer: "alt",
+          },
+          {
+            question: "Which HTML element is used to define a paragraph?",
+            options: ["<p>", "<div>", "<span>"],
+            answer: "<p>",
+          },
+          {
+            question:
+              "Which HTML element is used to define a division or a section in an HTML document?",
+            options: ["<div>", "<section>", "<article>"],
+            answer: "<div>",
+          },
+          {
+            question:
+              "Which HTML element is used to define a header for a document or a section?",
+            options: ["<header>", "<head>", "<h1>"],
+            answer: "<header>",
+          },
+          {
+            question:
+              "Which HTML element is used to define a footer for a document or a section?",
+            options: ["<footer>", "<foot>", "<bottom>"],
+            answer: "<footer>",
+          },
+          {
+            question:
+              "Which HTML element is used to define a navigation link?",
+            options: ["<nav>", "<link>", "<a>"],
+            answer: "<nav>",
+          },
+          {
+            question:
+              "Which HTML element is used to define a form for user input?",
+            options: ["<form>", "<input>", "<textarea>"],
+            answer: "<form>",
+          },
+          {
+            question:
+              "Which HTML attribute is used to specify the URL of an image?",
+            options: ["src", "href", "link"],
+            answer: "src",
+          },
+          {
+            question: "Which HTML element is used to define a list item?",
+            options: ["<li>", "<ul>", "<ol>"],
+            answer: "<li>",
+          },
+          {
+            question:
+              "Which HTML element is used to define a block of text that is preformatted?",
+            options: ["<pre>", "<code>", "<blockquote>"],
+            answer: "<pre>",
+          },
+          {
+            question:
+              "Which HTML element is used to define a horizontal rule?",
+            options: ["<hr>", "<br>", "<line>"],
+            answer: "<hr>",
+          },
+          {
+            question:
+              "Which HTML element is used to define a section in a document?",
+            options: ["<section>", "<div>", "<article>"],
+            answer: "<section>",
+          },
+          {
+            question:
+              "Which HTML element is used to define a figure caption?",
+            options: ["<figcaption>", "<caption>", "<figure>"],
+            answer: "<figcaption>",
+          },
+          {
+            question: "Which HTML element is used to define a figure?",
+            options: ["<figure>", "<img>", "<picture>"],
+            answer: "<figure>",
+          },
+        ],
+        hard: [
+          {
+            question: "What is the purpose of the <noscript> tag in HTML?",
+            options: [
+              "To provide content for users with disabled scripts",
+              "To disable JavaScript",
+              "To link external scripts",
+            ],
+            answer: "To provide content for users with disabled scripts",
+          },
+          {
+            question:
+              "Which HTML attribute is used to specify that an input field must be filled out before submitting the form?",
+            options: ["required", "placeholder", "value"],
+            answer: "required",
+          },
+          {
+            question:
+              "Which HTML element is used to define a client-side script?",
+            options: ["<script>", "<code>", "<client>"],
+            answer: "<script>",
+          },
+          {
+            question:
+              "Which HTML attribute is used to specify the character encoding for the HTML document?",
+            options: ["charset", "encoding", "lang"],
+            answer: "charset",
+          },
+          {
+            question:
+              "Which HTML element is used to define a scalar measurement within a known range?",
+            options: ["<meter>", "<progress>", "<range>"],
+            answer: "<meter>",
+          },
+          {
+            question:
+              "Which HTML attribute is used to specify the URL of the page that the link goes to?",
+            options: ["href", "src", "link"],
+            answer: "href",
+          },
+          {
+            question:
+              "Which HTML element is used to define a section that is quoted from another source?",
+            options: ["<blockquote>", "<quote>", "<cite>"],
+            answer: "<blockquote>",
+          },
+          {
+            question:
+              "Which HTML attribute is used to specify an inline CSS style for an element?",
+            options: ["style", "class", "id"],
+            answer: "style",
+          },
+          {
+            question:
+              "Which HTML element is used to define a container for an external application or interactive content?",
+            options: ["<embed>", "<object>", "<iframe>"],
+            answer: "<embed>",
+          },
+          {
+            question:
+              "Which HTML attribute is used to specify the language of the element's content?",
+            options: ["lang", "xml:lang", "dir"],
+            answer: "lang",
+          },
+          {
+            question:
+              "Which HTML element is used to define a section in a document that is intended to be independently distributable or reusable?",
+            options: ["<article>", "<section>", "<div>"],
+            answer: "<article>",
+          },
+          {
+            question:
+              "Which HTML attribute is used to specify the relationship between the current document and the linked document?",
+            options: ["rel", "href", "type"],
+            answer: "rel",
+          },
+          {
+            question:
+              "Which HTML element is used to define a caption for a <figure> element?",
+            options: ["<figcaption>", "<caption>", "<legend>"],
+            answer: "<figcaption>",
+          },
+          {
+            question:
+              "Which HTML attribute is used to specify the media type of the linked document?",
+            options: ["type", "media", "rel"],
+            answer: "type",
+          },
+          {
+            question:
+              "Which HTML element is used to define a section in a document that contains contact information?",
+            options: ["<address>", "<contact>", "<info>"],
+            answer: "<address>",
+          },
+          {
+            question:
+              "Which HTML attribute is used to specify the width of an element?",
+            options: ["width", "size", "length"],
+            answer: "width",
+          },
+          {
+            question:
+              "Which HTML element is used to define a section in a document that contains navigation links?",
+            options: ["<nav>", "<menu>", "<links>"],
+            answer: "<nav>",
+          },
+          {
+            question:
+              "Which HTML attribute is used to specify the target frame for a link?",
+            options: ["target", "frame", "window"],
+            answer: "target",
+          },
+          {
+            question:
+              "Which HTML element is used to define a section in a document that contains a sidebar?",
+            options: ["<aside>", "<sidebar>", "<section>"],
+            answer: "<aside>",
+          },
+          {
+            question:
+              "Which HTML attribute is used to specify the URL of an external script file?",
+            options: ["src", "href", "link"],
+            answer: "src",
+          },
+        ],
+      },
+    
+      css: {
+        easy: [
+          {
+            question: "What does CSS stand for?",
+            options: [
+              "Cascading Style Sheets",
+              "Colorful Style Sheets",
+              "Computer Style Sheets",
+            ],
+            answer: "Cascading Style Sheets",
+          },
+          {
+            question:
+              "Which property is used to change the background color?",
+            options: ["color", "background-color", "bgcolor"],
+            answer: "background-color",
+          },
+          {
+            question:
+              "Which property is used to change the text color of an element?",
+            options: ["fgcolor", "color", "text-color"],
+            answer: "color",
+          },
+          {
+            question:
+              "Which property is used to change the font of an element?",
+            options: ["font-family", "font-style", "font-weight"],
+            answer: "font-family",
+          },
+          {
+            question: "Which property is used to change the size of text?",
+            options: ["font-size", "text-size", "font-weight"],
+            answer: "font-size",
+          },
+          {
+            question: "Which property is used to align text?",
+            options: ["text-align", "align-text", "text-position"],
+            answer: "text-align",
+          },
+          {
+            question:
+              "Which property is used to add space inside the border of an element?",
+            options: ["padding", "margin", "border-spacing"],
+            answer: "padding",
+          },
+          {
+            question:
+              "Which property is used to add space outside the border of an element?",
+            options: ["margin", "padding", "border-spacing"],
+            answer: "margin",
+          },
+          {
+            question:
+              "Which property is used to set the width of an element?",
+            options: ["width", "element-width", "size"],
+            answer: "width",
+          },
+          {
+            question:
+              "Which property is used to set the height of an element?",
+            options: ["height", "element-height", "size"],
+            answer: "height",
+          },
+        ],
+        medium: [
+          {
+            question:
+              "Which property is used to change the font size of an element?",
+            options: ["font-size", "text-size", "font-weight"],
+            answer: "font-size",
+          },
+          {
+            question:
+              "Which property is used to change the font style of an element?",
+            options: ["font-style", "font-weight", "font-family"],
+            answer: "font-style",
+          },
+          {
+            question:
+              "Which property is used to change the font weight of an element?",
+            options: ["font-weight", "font-style", "font-family"],
+            answer: "font-weight",
+          },
+          {
+            question:
+              "Which property is used to change the line height of an element?",
+            options: ["line-height", "line-spacing", "line-width"],
+            answer: "line-height",
+          },
+          {
+            question:
+              "Which property is used to change the letter spacing of an element?",
+            options: ["letter-spacing", "letter-width", "letter-height"],
+            answer: "letter-spacing",
+          },
+          {
+            question:
+              "Which property is used to change the word spacing of an element?",
+            options: ["word-spacing", "word-width", "word-height"],
+            answer: "word-spacing",
+          },
+          {
+            question:
+              "Which property is used to change the text decoration of an element?",
+            options: ["text-decoration", "text-style", "text-weight"],
+            answer: "text-decoration",
+          },
+          {
+            question:
+              "Which property is used to change the text transform of an element?",
+            options: ["text-transform", "text-style", "text-weight"],
+            answer: "text-transform",
+          },
+          {
+            question:
+              "Which property is used to change the text shadow of an element?",
+            options: ["text-shadow", "text-style", "text-weight"],
+            answer: "text-shadow",
+          },
+          {
+            question:
+              "Which property is used to change the text indent of an element?",
+            options: ["text-indent", "text-style", "text-weight"],
+            answer: "text-indent",
+          },
+        ],
+        hard: [
+          {
+            question:
+              "Which property is used to change the border color of an element?",
+            options: ["border-color", "border-style", "border-width"],
+            answer: "border-color",
+          },
+          {
+            question:
+              "Which property is used to change the border style of an element?",
+            options: ["border-style", "border-color", "border-width"],
+            answer: "border-style",
+          },
+          {
+            question:
+              "Which property is used to change the border width of an element?",
+            options: ["border-width", "border-style", "border-color"],
+            answer: "border-width",
+          },
+          {
+            question:
+              "Which property is used to change the border radius of an element?",
+            options: ["border-radius", "border-style", "border-width"],
+            answer: "border-radius",
+          },
+          {
+            question:
+              "Which property is used to change the box shadow of an element?",
+            options: ["box-shadow", "box-style", "box-width"],
+            answer: "box-shadow",
+          },
+          {
+            question:
+              "Which property is used to change the box sizing of an element?",
+            options: ["box-sizing", "box-style", "box-width"],
+            answer: "box-sizing",
+          },
+          {
+            question:
+              "Which property is used to change the display of an element?",
+            options: ["display", "display-style", "display-width"],
+            answer: "display",
+          },
+          {
+            question:
+              "Which property is used to change the float of an element?",
+            options: ["float", "float-style", "float-width"],
+            answer: "float",
+          },
+          {
+            question:
+              "Which property is used to change the position of an element?",
+            options: ["position", "position-style", "position-width"],
+            answer: "position",
+          },
+          {
+            question:
+              "Which property is used to change the z-index of an element?",
+            options: ["z-index", "z-style", "z-width"],
+            answer: "z-index",
+          },
+        ],
+      },
+
+      javascript: {
+        easy: [
+          {
+            question: "What does JS stand for?",
+            options: ["JavaScript", "JavaSource", "JustScript"],
+            answer: "JavaScript",
+          },
+          {
+            question:
+              "Which keyword is used to declare a variable in JavaScript?",
+            options: ["var", "let", "const"],
+            answer: "var",
+          },
+          {
+            question:
+              "Which keyword is used to declare a constant in JavaScript?",
+            options: ["const", "let", "var"],
+            answer: "const",
+          },
+          {
+            question:
+              "Which method is used to write a message to the console in JavaScript?",
+            options: ["console.log()", "console.write()", "console.print()"],
+            answer: "console.log()",
+          },
+          {
+            question:
+              "Which method is used to display an alert box in JavaScript?",
+            options: ["alert()", "prompt()", "confirm()"],
+            answer: "alert()",
+          },
+          {
+            question:
+              "Which method is used to display a prompt box in JavaScript?",
+            options: ["prompt()", "alert()", "confirm()"],
+            answer: "prompt()",
+          },
+          {
+            question:
+              "Which method is used to display a confirmation box in JavaScript?",
+            options: ["confirm()", "alert()", "prompt()"],
+            answer: "confirm()",
+          },
+          {
+            question:
+              "Which operator is used to assign a value to a variable in JavaScript?",
+            options: ["=", "==", "==="],
+            answer: "=",
+          },
+          {
+            question:
+              "Which operator is used to compare two values in JavaScript?",
+            options: ["==", "=", "==="],
+            answer: "==",
+          },
+          {
+            question:
+              "Which operator is used to compare two values and their types in JavaScript?",
+            options: ["===", "==", "="],
+            answer: "===",
+          },
+        ],
+        medium: [
+          {
+            question:
+              "Which method is used to convert a string to an integer in JavaScript?",
+            options: ["parseInt()", "parseFloat()", "Number()"],
+            answer: "parseInt()",
+          },
+          {
+            question:
+              "Which method is used to convert a string to a floating-point number in JavaScript?",
+            options: ["parseFloat()", "parseInt()", "Number()"],
+            answer: "parseFloat()",
+          },
+          {
+            question:
+              "Which method is used to convert a value to a string in JavaScript?",
+            options: ["toString()", "String()", "toText()"],
+            answer: "toString()",
+          },
+          {
+            question:
+              "Which method is used to convert a value to a number in JavaScript?",
+            options: ["Number()", "parseInt()", "parseFloat()"],
+            answer: "Number()",
+          },
+          {
+            question:
+              "Which method is used to check if a value is an array in JavaScript?",
+            options: ["Array.isArray()", "isArray()", "isArrayValue()"],
+            answer: "Array.isArray()",
+          },
+          {
+            question:
+              "Which method is used to add an element to the end of an array in JavaScript?",
+            options: ["push()", "pop()", "shift()"],
+            answer: "push()",
+          },
+          {
+            question:
+              "Which method is used to remove the last element from an array in JavaScript?",
+            options: ["pop()", "push()", "shift()"],
+            answer: "pop()",
+          },
+          {
+            question:
+              "Which method is used to add an element to the beginning of an array in JavaScript?",
+            options: ["unshift()", "shift()", "push()"],
+            answer: "unshift()",
+          },
+          {
+            question:
+              "Which method is used to remove the first element from an array in JavaScript?",
+            options: ["shift()", "unshift()", "pop()"],
+            answer: "shift()",
+          },
+          {
+            question:
+              "Which method is used to join all elements of an array into a string in JavaScript?",
+            options: ["join()", "concat()", "toString()"],
+            answer: "join()",
+          },
+        ],
+        hard: [
+          {
+            question:
+              "Which method is used to sort the elements of an array in JavaScript?",
+            options: ["sort()", "order()", "arrange()"],
+            answer: "sort()",
+          },
+          {
+            question:
+              "Which method is used to reverse the order of the elements of an array in JavaScript?",
+            options: ["reverse()", "backward()", "flip()"],
+            answer: "reverse()",
+          },
+          {
+            question:
+              "Which method is used to find the index of an element in an array in JavaScript?",
+            options: ["indexOf()", "findIndex()", "search()"],
+            answer: "indexOf()",
+          },
+          {
+            question:
+              "Which method is used to remove an element from an array in JavaScript?",
+            options: ["splice()", "slice()", "remove()"],
+            answer: "splice()",
+          },
+          {
+            question:
+              "Which method is used to create a new array from an existing array in JavaScript?",
+            options: ["slice()", "splice()", "copy()"],
+            answer: "slice()",
+          },
+          {
+            question:
+              "Which method is used to merge two or more arrays in JavaScript?",
+            options: ["concat()", "merge()", "combine()"],
+            answer: "concat()",
+          },
+          {
+            question:
+              "Which method is used to filter elements of an array in JavaScript?",
+            options: ["filter()", "find()", "select()"],
+            answer: "filter()",
+          },
+          {
+            question:
+              "Which method is used to map elements of an array in JavaScript?",
+            options: ["map()", "transform()", "convert()"],
+            answer: "map()",
+          },
+          {
+            question:
+              "Which method is used to reduce elements of an array in JavaScript?",
+            options: ["reduce()", "compress()", "minimize()"],
+            answer: "reduce()",
+          },
+          {
+            question:
+              "Which method is used to find an element in an array in JavaScript?",
+            options: ["find()", "search()", "locate()"],
+            answer: "find()",
+          },
+        ],
+      },
+
+      python: {
+        easy: [
+          {
+            question: "What does Python stand for?",
+            options: ["Python", "PyScript", "PyLang"],
+            answer: "Python",
+          },
+          {
+            question:
+              "Which keyword is used to declare a variable in Python?",
+            options: ["var", "let", "None"],
+            answer: "None",
+          },
+          {
+            question:
+              "Which keyword is used to declare a constant in Python?",
+            options: ["const", "let", "None"],
+            answer: "None",
+          },
+          {
+            question: "Which method is used to print a message in Python?",
+            options: ["print()", "write()", "log()"],
+            answer: "print()",
+          },
+          {
+            question:
+              "Which method is used to get input from the user in Python?",
+            options: ["input()", "get()", "read()"],
+            answer: "input()",
+          },
+          {
+            question:
+              "Which operator is used to assign a value to a variable in Python?",
+            options: ["=", "==", "==="],
+            answer: "=",
+          },
+          {
+            question:
+              "Which operator is used to compare two values in Python?",
+            options: ["==", "=", "==="],
+            answer: "==",
+          },
+          {
+            question:
+              "Which operator is used to compare two values and their types in Python?",
+            options: ["===", "==", "="],
+            answer: "==",
+          },
+          {
+            question:
+              "Which method is used to convert a string to an integer in Python?",
+            options: ["int()", "float()", "str()"],
+            answer: "int()",
+          },
+          {
+            question:
+              "Which method is used to convert a string to a floating-point number in Python?",
+            options: ["float()", "int()", "str()"],
+            answer: "float()",
+          },
+          {
+            question:
+              "Which method is used to convert a value to a string in Python?",
+            options: ["str()", "toString()", "text()"],
+            answer: "str()",
+          },
+          {
+            question:
+              "Which method is used to convert a value to a number in Python?",
+            options: ["int()", "float()", "num()"],
+            answer: "int()",
+          },
+          {
+            question:
+              "Which method is used to check if a value is an integer in Python?",
+            options: ["isinstance()", "isInt()", "isNumber()"],
+            answer: "isinstance()",
+          },
+          {
+            question:
+              "Which method is used to check if a value is a string in Python?",
+            options: ["isinstance()", "isString()", "isText()"],
+            answer: "isinstance()",
+          },
+        ],
+        medium: [
+          {
+            question:
+              "Which method is used to check if a value is a list in Python?",
+            options: ["isinstance()", "isList()", "isArray()"],
+            answer: "isinstance()",
+          },
+          {
+            question:
+              "Which method is used to add an element to the end of a list in Python?",
+            options: ["append()", "add()", "push()"],
+            answer: "append()",
+          },
+          {
+            question:
+              "Which method is used to remove the last element from a list in Python?",
+            options: ["pop()", "remove()", "delete()"],
+            answer: "pop()",
+          },
+          {
+            question:
+              "Which method is used to add an element to the beginning of a list in Python?",
+            options: ["insert()", "add()", "push()"],
+            answer: "insert()",
+          },
+          {
+            question:
+              "Which method is used to remove the first element from a list in Python?",
+            options: ["pop(0)", "remove(0)", "delete(0)"],
+            answer: "pop(0)",
+          },
+          {
+            question:
+              "Which method is used to join all elements of a list into a string in Python?",
+            options: ["join()", "concat()", "toString()"],
+            answer: "join()",
+          },
+          {
+            question:
+              "Which method is used to sort the elements of a list in Python?",
+            options: ["sort()", "order()", "arrange()"],
+            answer: "sort()",
+          },
+          {
+            question:
+              "Which method is used to reverse the order of the elements of a list in Python?",
+            options: ["reverse()", "backward()", "flip()"],
+            answer: "reverse()",
+          },
+          {
+            question:
+              "Which method is used to find the index of an element in a list in Python?",
+            options: ["index()", "findIndex()", "search()"],
+            answer: "index()",
+          },
+          {
+            question:
+              "Which method is used to remove an element from a list in Python?",
+            options: ["remove()", "delete()", "pop()"],
+            answer: "remove()",
+          },
+        ],
+        hard: [
+          {
+            question:
+              "Which method is used to create a new list from an existing list in Python?",
+            options: ["copy()", "clone()", "duplicate()"],
+            answer: "copy()",
+          },
+          {
+            question:
+              "Which method is used to merge two or more lists in Python?",
+            options: ["extend()", "concat()", "combine()"],
+            answer: "extend()",
+          },
+          {
+            question:
+              "Which method is used to filter elements of a list in Python?",
+            options: ["filter()", "find()", "select()"],
+            answer: "filter()",
+          },
+          {
+            question:
+              "Which method is used to map elements of a list in Python?",
+            options: ["map()", "transform()", "convert()"],
+            answer: "map()",
+          },
+          {
+            question:
+              "Which method is used to reduce elements of a list in Python?",
+            options: ["reduce()", "compress()", "minimize()"],
+            answer: "reduce()",
+          },
+          {
+            question:
+              "Which method is used to find an element in a list in Python?",
+            options: ["find()", "search()", "locate()"],
+            answer: "find()",
+          },
+          {
+            question:
+              "Which method is used to check if a value is a dictionary in Python?",
+            options: ["isinstance()", "isDict()", "isMap()"],
+            answer: "isinstance()",
+          },
+          {
+            question:
+              "Which method is used to get the keys of a dictionary in Python?",
+            options: ["keys()", "getKeys()", "listKeys()"],
+            answer: "keys()",
+          },
+          {
+            question:
+              "Which method is used to get the values of a dictionary in Python?",
+            options: ["values()", "getValues()", "listValues()"],
+            answer: "values()",
+          },
+          {
+            question:
+              "Which method is used to get the items of a dictionary in Python?",
+            options: ["items()", "getItems()", "listItems()"],
+            answer: "items()",
+          },
+        ],
+      },
+
+      java: {
+        easy: [
+          {
+            question: "What does Java stand for?",
+            options: ["Java", "JavaScript", "JavaLang"],
+            answer: "Java",
+          },
+          {
+            question: "Which keyword is used to declare a variable in Java?",
+            options: ["var", "let", "int"],
+            answer: "int",
+          },
+          {
+            question: "Which keyword is used to declare a constant in Java?",
+            options: ["const", "final", "static"],
+            answer: "final",
+          },
+          {
+            question: "Which method is used to print a message in Java?",
+            options: ["System.out.println()", "print()", "log()"],
+            answer: "System.out.println()",
+          },
+          {
+            question:
+              "Which method is used to get input from the user in Java?",
+            options: ["Scanner.nextLine()", "input()", "read()"],
+            answer: "Scanner.nextLine()",
+          },
+          {
+            question:
+              "Which operator is used to assign a value to a variable in Java?",
+            options: ["=", "==", "==="],
+            answer: "=",
+          },
+          {
+            question: "Which operator is used to compare two values in Java?",
+            options: ["==", "=", "==="],
+            answer: "==",
+          },
+          {
+            question:
+              "Which operator is used to compare two values and their types in Java?",
+            options: ["===", "==", "="],
+            answer: "==",
+          },
+          {
+            question:
+              "Which method is used to convert a string to an integer in Java?",
+            options: [
+              "Integer.parseInt()",
+              "Float.parseFloat()",
+              "String.valueOf()",
+            ],
+            answer: "Integer.parseInt()",
+          },
+          {
+            question:
+              "Which method is used to convert a string to a floating-point number in Java?",
+            options: [
+              "Float.parseFloat()",
+              "Integer.parseInt()",
+              "String.valueOf()",
+            ],
+            answer: "Float.parseFloat()",
+          },
+        ],
+        medium: [
+          {
+            question:
+              "Which method is used to convert a value to a string in Java?",
+            options: ["String.valueOf()", "toString()", "text()"],
+            answer: "String.valueOf()",
+          },
+          {
+            question:
+              "Which method is used to convert a value to a number in Java?",
+            options: ["Integer.parseInt()", "Float.parseFloat()", "Number()"],
+            answer: "Integer.parseInt()",
+          },
+          {
+            question:
+              "Which method is used to check if a value is an integer in Java?",
+            options: ["instanceof", "isInt()", "isNumber()"],
+            answer: "instanceof",
+          },
+          {
+            question:
+              "Which method is used to check if a value is a string in Java?",
+            options: ["instanceof", "isString()", "isText()"],
+            answer: "instanceof",
+          },
+          {
+            question:
+              "Which method is used to check if a value is a list in Java?",
+            options: ["instanceof", "isList()", "isArray()"],
+            answer: "instanceof",
+          },
+          {
+            question:
+              "Which method is used to add an element to the end of a list in Java?",
+            options: ["add()", "append()", "push()"],
+            answer: "add()",
+          },
+          {
+            question:
+              "Which method is used to remove the last element from a list in Java?",
+            options: ["remove()", "pop()", "delete()"],
+            answer: "remove()",
+          },
+          {
+            question:
+              "Which method is used to add an element to the beginning of a list in Java?",
+            options: ["add(0, element)", "insert()", "push()"],
+            answer: "add(0, element)",
+          },
+          {
+            question:
+              "Which method is used to remove the first element from a list in Java?",
+            options: ["remove(0)", "pop(0)", "delete(0)"],
+            answer: "remove(0)",
+          },
+          {
+            question:
+              "Which method is used to join all elements of a list into a string in Java?",
+            options: ["String.join()", "concat()", "toString()"],
+            answer: "String.join()",
+          },
+        ],
+        hard: [
+          {
+            question:
+              "Which method is used to sort the elements of a list in Java?",
+            options: ["Collections.sort()", "order()", "arrange()"],
+            answer: "Collections.sort()",
+          },
+          {
+            question:
+              "Which method is used to reverse the order of the elements of a list in Java?",
+            options: ["Collections.reverse()", "backward()", "flip()"],
+            answer: "Collections.reverse()",
+          },
+          {
+            question:
+              "Which method is used to find the index of an element in a list in Java?",
+            options: ["indexOf()", "findIndex()", "search()"],
+            answer: "indexOf()",
+          },
+          {
+            question:
+              "Which method is used to remove an element from a list in Java?",
+            options: ["remove()", "delete()", "pop()"],
+            answer: "remove()",
+          },
+          {
+            question:
+              "Which method is used to create a new list from an existing list in Java?",
+            options: ["copy()", "clone()", "duplicate()"],
+            answer: "copy()",
+          },
+          {
+            question:
+              "Which method is used to merge two or more lists in Java?",
+            options: ["addAll()", "concat()", "combine()"],
+            answer: "addAll()",
+          },
+          {
+            question:
+              "Which method is used to filter elements of a list in Java?",
+            options: ["stream().filter()", "find()", "select()"],
+            answer: "stream().filter()",
+          },
+          {
+            question:
+              "Which method is used to map elements of a list in Java?",
+            options: ["stream().map()", "transform()", "convert()"],
+            answer: "stream().map()",
+          },
+          {
+            question:
+              "Which method is used to reduce elements of a list in Java?",
+            options: ["stream().reduce()", "compress()", "minimize()"],
+            answer: "stream().reduce()",
+          },
+          {
+            question:
+              "Which method is used to find an element in a list in Java?",
+            options: ["stream().findFirst()", "search()", "locate()"],
+            answer: "stream().findFirst()",
+          },
+        ],
+      },
+
+      csharp: {
+        easy: [
+          {
+            question: "What does C stand for?",
+            options: ["C", "C++", "C#"],
+            answer: "C",
+          },
+          {
+            question: "Which keyword is used to declare a variable in C?",
+            options: ["var", "let", "int"],
+            answer: "int",
+          },
+          {
+            question: "Which keyword is used to declare a constant in C?",
+            options: ["const", "final", "static"],
+            answer: "const",
+          },
+          {
+            question: "Which function is used to print a message in C?",
+            options: ["printf()", "print()", "log()"],
+            answer: "printf()",
+          },
+          {
+            question:
+              "Which function is used to get input from the user in C?",
+            options: ["scanf()", "input()", "read()"],
+            answer: "scanf()",
+          },
+          {
+            question:
+              "Which operator is used to assign a value to a variable in C?",
+            options: ["=", "==", "==="],
+            answer: "=",
+          },
+          {
+            question: "Which operator is used to compare two values in C?",
+            options: ["==", "=", "==="],
+            answer: "==",
+          },
+          {
+            question:
+              "Which operator is used to compare two values and their types in C?",
+            options: ["===", "==", "="],
+            answer: "==",
+          },
+          {
+            question:
+              "Which function is used to convert a string to an integer in C?",
+            options: ["atoi()", "atof()", "itoa()"],
+            answer: "atoi()",
+          },
+          {
+            question:
+              "Which function is used to convert a string to a floating-point number in C?",
+            options: ["atof()", "atoi()", "itoa()"],
+            answer: "atof()",
+          },
+        ],
+        medium: [
+          {
+            question:
+              "Which function is used to convert a value to a string in C?",
+            options: ["itoa()", "toString()", "text()"],
+            answer: "itoa()",
+          },
+          {
+            question:
+              "Which function is used to convert a value to a number in C?",
+            options: ["atoi()", "atof()", "num()"],
+            answer: "atoi()",
+          },
+          {
+            question:
+              "Which function is used to check if a value is an integer in C?",
+            options: ["isdigit()", "isInt()", "isNumber()"],
+            answer: "isdigit()",
+          },
+          {
+            question:
+              "Which function is used to check if a value is a string in C?",
+            options: ["isalpha()", "isString()", "isText()"],
+            answer: "isalpha()",
+          },
+          {
+            question:
+              "Which function is used to check if a value is a list in C?",
+            options: ["islist()", "isList()", "isArray()"],
+            answer: "islist()",
+          },
+          {
+            question:
+              "Which function is used to add an element to the end of a list in C?",
+            options: ["append()", "add()", "push()"],
+            answer: "append()",
+          },
+          {
+            question:
+              "Which function is used to remove the last element from a list in C?",
+            options: ["pop()", "remove()", "delete()"],
+            answer: "pop()",
+          },
+          {
+            question:
+              "Which function is used to add an element to the beginning of a list in C?",
+            options: ["insert()", "add()", "push()"],
+            answer: "insert()",
+          },
+          {
+            question:
+              "Which function is used to remove the first element from a list in C?",
+            options: ["pop(0)", "remove(0)", "delete(0)"],
+            answer: "pop(0)",
+          },
+          {
+            question:
+              "Which function is used to join all elements of a list into a string in C?",
+            options: ["join()", "concat()", "toString()"],
+            answer: "join()",
+          },
+        ],
+        hard: [
+          {
+            question:
+              "Which function is used to sort the elements of a list in C?",
+            options: ["qsort()", "sort()", "order()"],
+            answer: "qsort()",
+          },
+          {
+            question:
+              "Which function is used to reverse the order of the elements of a list in C?",
+            options: ["reverse()", "backward()", "flip()"],
+            answer: "reverse()",
+          },
+          {
+            question:
+              "Which function is used to find the index of an element in a list in C?",
+            options: ["index()", "findIndex()", "search()"],
+            answer: "index()",
+          },
+          {
+            question:
+              "Which function is used to remove an element from a list in C?",
+            options: ["remove()", "delete()", "pop()"],
+            answer: "remove()",
+          },
+          {
+            question:
+              "Which function is used to create a new list from an existing list in C?",
+            options: ["copy()", "clone()", "duplicate()"],
+            answer: "copy()",
+          },
+          {
+            question:
+              "Which function is used to merge two or more lists in C?",
+            options: ["merge()", "concat()", "combine()"],
+            answer: "merge()",
+          },
+          {
+            question:
+              "Which function is used to filter elements of a list in C?",
+            options: ["filter()", "find()", "select()"],
+            answer: "filter()",
+          },
+          {
+            question:
+              "Which function is used to map elements of a list in C?",
+            options: ["map()", "transform()", "convert()"],
+            answer: "map()",
+          },
+          {
+            question:
+              "Which function is used to reduce elements of a list in C?",
+            options: ["reduce()", "compress()", "minimize()"],
+            answer: "reduce()",
+          },
+          {
+            question:
+              "Which function is used to find an element in a list in C?",
+            options: ["find()", "search()", "locate()"],
+            answer: "find()",
+          },
+        ],
+      },
+
+      sql: {
+        easy: [
+          {
+            question: "What does SQL stand for?",
+            options: [
+              "Structured Query Language",
+              "Simple Query Language",
+              "Standard Query Language",
+            ],
+            answer: "Structured Query Language",
+          },
+          {
+            question:
+              "Which SQL statement is used to retrieve data from a database?",
+            options: ["SELECT", "GET", "FETCH"],
+            answer: "SELECT",
+          },
+          {
+            question:
+              "Which SQL statement is used to insert new data into a database?",
+            options: ["INSERT", "ADD", "NEW"],
+            answer: "INSERT",
+          },
+          {
+            question:
+              "Which SQL statement is used to update existing data in a database?",
+            options: ["UPDATE", "MODIFY", "CHANGE"],
+            answer: "UPDATE",
+          },
+          {
+            question:
+              "Which SQL statement is used to delete data from a database?",
+            options: ["DELETE", "REMOVE", "DROP"],
+            answer: "DELETE",
+          },
+          {
+            question: "Which SQL clause is used to filter records?",
+            options: ["WHERE", "FILTER", "CONDITION"],
+            answer: "WHERE",
+          },
+          {
+            question: "Which SQL clause is used to sort records?",
+            options: ["ORDER BY", "SORT BY", "ARRANGE BY"],
+            answer: "ORDER BY",
+          },
+          {
+            question:
+              "Which SQL function is used to count the number of rows in a table?",
+            options: ["COUNT()", "SUM()", "TOTAL()"],
+            answer: "COUNT()",
+          },
+          {
+            question:
+              "Which SQL function is used to calculate the sum of a numeric column?",
+            options: ["SUM()", "ADD()", "TOTAL()"],
+            answer: "SUM()",
+          },
+          {
+            question:
+              "Which SQL function is used to find the average value of a numeric column?",
+            options: ["AVG()", "MEAN()", "AVERAGE()"],
+            answer: "AVG()",
+          },
+        ],
+        medium: [
+          {
+            question:
+              "Which SQL function is used to find the maximum value in a column?",
+            options: ["MAX()", "HIGHEST()", "TOP()"],
+            answer: "MAX()",
+          },
+          {
+            question:
+              "Which SQL function is used to find the minimum value in a column?",
+            options: ["MIN()", "LOWEST()", "BOTTOM()"],
+            answer: "MIN()",
+          },
+          {
+            question: "Which SQL statement is used to create a new table?",
+            options: ["CREATE TABLE", "NEW TABLE", "ADD TABLE"],
+            answer: "CREATE TABLE",
+          },
+          {
+            question:
+              "Which SQL statement is used to add a new column to an existing table?",
+            options: ["ALTER TABLE", "MODIFY TABLE", "CHANGE TABLE"],
+            answer: "ALTER TABLE",
+          },
+          {
+            question:
+              "Which SQL statement is used to remove a column from an existing table?",
+            options: [
+              "ALTER TABLE DROP COLUMN",
+              "REMOVE COLUMN",
+              "DELETE COLUMN",
+            ],
+            answer: "ALTER TABLE DROP COLUMN",
+          },
+          {
+            question: "Which SQL statement is used to create a new database?",
+            options: ["CREATE DATABASE", "NEW DATABASE", "ADD DATABASE"],
+            answer: "CREATE DATABASE",
+          },
+          {
+            question:
+              "Which SQL statement is used to delete an existing database?",
+            options: ["DROP DATABASE", "DELETE DATABASE", "REMOVE DATABASE"],
+            answer: "DROP DATABASE",
+          },
+          {
+            question: "Which SQL statement is used to create a new index?",
+            options: ["CREATE INDEX", "NEW INDEX", "ADD INDEX"],
+            answer: "CREATE INDEX",
+          },
+          {
+            question:
+              "Which SQL statement is used to delete an existing index?",
+            options: ["DROP INDEX", "DELETE INDEX", "REMOVE INDEX"],
+            answer: "DROP INDEX",
+          },
+          {
+            question:
+              "Which SQL clause is used to group records that have the same values?",
+            options: ["GROUP BY", "CLUSTER BY", "AGGREGATE BY"],
+            answer: "GROUP BY",
+          },
+        ],
+        hard: [
+          {
+            question: "Which SQL statement is used to create a view?",
+            options: ["CREATE VIEW", "NEW VIEW", "ADD VIEW"],
+            answer: "CREATE VIEW",
+          },
+          {
+            question: "Which SQL statement is used to delete a view?",
+            options: ["DROP VIEW", "DELETE VIEW", "REMOVE VIEW"],
+            answer: "DROP VIEW",
+          },
+          {
+            question:
+              "Which SQL statement is used to grant privileges to a user?",
+            options: ["GRANT", "ALLOW", "PERMIT"],
+            answer: "GRANT",
+          },
+          {
+            question:
+              "Which SQL statement is used to revoke privileges from a user?",
+            options: ["REVOKE", "DENY", "REMOVE"],
+            answer: "REVOKE",
+          },
+          {
+            question:
+              "Which SQL statement is used to create a stored procedure?",
+            options: ["CREATE PROCEDURE", "NEW PROCEDURE", "ADD PROCEDURE"],
+            answer: "CREATE PROCEDURE",
+          },
+          {
+            question:
+              "Which SQL statement is used to delete a stored procedure?",
+            options: [
+              "DROP PROCEDURE",
+              "DELETE PROCEDURE",
+              "REMOVE PROCEDURE",
+            ],
+            answer: "DROP PROCEDURE",
+          },
+          {
+            question: "Which SQL statement is used to create a trigger?",
+            options: ["CREATE TRIGGER", "NEW TRIGGER", "ADD TRIGGER"],
+            answer: "CREATE TRIGGER",
+          },
+          {
+            question: "Which SQL statement is used to delete a trigger?",
+            options: ["DROP TRIGGER", "DELETE TRIGGER", "REMOVE TRIGGER"],
+            answer: "DROP TRIGGER",
+          },
+          {
+            question: "Which SQL statement is used to create a function?",
+            options: ["CREATE FUNCTION", "NEW FUNCTION", "ADD FUNCTION"],
+            answer: "CREATE FUNCTION",
+          },
+          {
+            question: "Which SQL statement is used to delete a function?",
+            options: ["DROP FUNCTION", "DELETE FUNCTION", "REMOVE FUNCTION"],
+            answer: "DROP FUNCTION",
+          },
+        ],
+      },
+
+      php: {
+        easy: [
+          {
+            question: "What does PHP stand for?",
+            options: [
+              "Hypertext Preprocessor",
+              "Preprocessor Hypertext",
+              "Personal Home Page",
+            ],
+            answer: "Hypertext Preprocessor",
+          },
+          {
+            question: "Which symbol is used to start a PHP variable?",
+            options: ["$", "#", "@"],
+            answer: "$",
+          },
+          {
+            question: "Which function is used to output text in PHP?",
+            options: ["echo", "print", "output"],
+            answer: "echo",
+          },
+          {
+            question:
+              "Which function is used to get the length of a string in PHP?",
+            options: ["strlen()", "length()", "size()"],
+            answer: "strlen()",
+          },
+          {
+            question:
+              "Which function is used to convert a string to lowercase in PHP?",
+            options: ["strtolower()", "tolower()", "lowercase()"],
+            answer: "strtolower()",
+          },
+          {
+            question:
+              "Which function is used to convert a string to uppercase in PHP?",
+            options: ["strtoupper()", "toupper()", "uppercase()"],
+            answer: "strtoupper()",
+          },
+          {
+            question: "Which function is used to replace a substring in PHP?",
+            options: ["str_replace()", "replace()", "substr_replace()"],
+            answer: "str_replace()",
+          },
+          {
+            question:
+              "Which function is used to split a string into an array in PHP?",
+            options: ["explode()", "split()", "str_split()"],
+            answer: "explode()",
+          },
+          {
+            question:
+              "Which function is used to join array elements into a string in PHP?",
+            options: ["implode()", "join()", "array_join()"],
+            answer: "implode()",
+          },
+          {
+            question:
+              "Which function is used to check if a variable is set in PHP?",
+            options: ["isset()", "is_set()", "check_set()"],
+            answer: "isset()",
+          },
+        ],
+        medium: [
+          {
+            question:
+              "Which function is used to check if a variable is empty in PHP?",
+            options: ["empty()", "is_empty()", "check_empty()"],
+            answer: "empty()",
+          },
+          {
+            question:
+              "Which function is used to check if a variable is an array in PHP?",
+            options: ["is_array()", "array_check()", "is_array_var()"],
+            answer: "is_array()",
+          },
+          {
+            question:
+              "Which function is used to get the type of a variable in PHP?",
+            options: ["gettype()", "type()", "var_type()"],
+            answer: "gettype()",
+          },
+          {
+            question:
+              "Which function is used to convert a variable to an integer in PHP?",
+            options: ["intval()", "to_int()", "convert_int()"],
+            answer: "intval()",
+          },
+          {
+            question:
+              "Which function is used to convert a variable to a string in PHP?",
+            options: ["strval()", "to_string()", "convert_string()"],
+            answer: "strval()",
+          },
+          {
+            question:
+              "Which function is used to convert a variable to a float in PHP?",
+            options: ["floatval()", "to_float()", "convert_float()"],
+            answer: "floatval()",
+          },
+          {
+            question:
+              "Which function is used to check if a variable is a number in PHP?",
+            options: ["is_numeric()", "numeric_check()", "is_number()"],
+            answer: "is_numeric()",
+          },
+          {
+            question:
+              "Which function is used to check if a variable is a string in PHP?",
+            options: ["is_string()", "string_check()", "is_str()"],
+            answer: "is_string()",
+          },
+          {
+            question:
+              "Which function is used to check if a variable is an integer in PHP?",
+            options: ["is_int()", "int_check()", "is_integer()"],
+            answer: "is_int()",
+          },
+          {
+            question:
+              "Which function is used to check if a variable is a float in PHP?",
+            options: ["is_float()", "float_check()", "is_double()"],
+            answer: "is_float()",
+          },
+        ],
+        hard: [
+          {
+            question:
+              "Which function is used to sort an array in ascending order in PHP?",
+            options: ["sort()", "asort()", "ksort()"],
+            answer: "sort()",
+          },
+          {
+            question:
+              "Which function is used to sort an array in descending order in PHP?",
+            options: ["rsort()", "arsort()", "krsort()"],
+            answer: "rsort()",
+          },
+          {
+            question:
+              "Which function is used to sort an array by values in ascending order in PHP?",
+            options: ["asort()", "sort()", "ksort()"],
+            answer: "asort()",
+          },
+          {
+            question:
+              "Which function is used to sort an array by values in descending order in PHP?",
+            options: ["arsort()", "rsort()", "krsort()"],
+            answer: "arsort()",
+          },
+          {
+            question:
+              "Which function is used to sort an array by keys in ascending order in PHP?",
+            options: ["ksort()", "sort()", "asort()"],
+            answer: "ksort()",
+          },
+          {
+            question:
+              "Which function is used to sort an array by keys in descending order in PHP?",
+            options: ["krsort()", "rsort()", "arsort()"],
+            answer: "krsort()",
+          },
+          {
+            question:
+              "Which function is used to merge two or more arrays in PHP?",
+            options: ["array_merge()", "merge()", "concat()"],
+            answer: "array_merge()",
+          },
+          {
+            question:
+              "Which function is used to filter elements of an array in PHP?",
+            options: ["array_filter()", "filter()", "select()"],
+            answer: "array_filter()",
+          },
+          {
+            question:
+              "Which function is used to map elements of an array in PHP?",
+            options: ["array_map()", "map()", "transform()"],
+            answer: "array_map()",
+          },
+          {
+            question:
+              "Which function is used to reduce elements of an array in PHP?",
+            options: ["array_reduce()", "reduce()", "compress()"],
+            answer: "array_reduce()",
+          },
+        ],
+      },
+
+      ruby: {
+        easy: [
+          {
+            question: "What does Ruby stand for?",
+            options: ["Ruby", "RubyLang", "RubyScript"],
+            answer: "Ruby",
+          },
+          {
+            question: "Which symbol is used to start a variable in Ruby?",
+            options: ["@", "$", "#"],
+            answer: "@",
+          },
+          {
+            question: "Which method is used to print a message in Ruby?",
+            options: ["puts", "print", "echo"],
+            answer: "puts",
+          },
+          {
+            question:
+              "Which method is used to get input from the user in Ruby?",
+            options: ["gets", "input", "read"],
+            answer: "gets",
+          },
+          {
+            question:
+              "Which operator is used to assign a value to a variable in Ruby?",
+            options: ["=", "==", "==="],
+            answer: "=",
+          },
+          {
+            question: "Which operator is used to compare two values in Ruby?",
+            options: ["==", "=", "==="],
+            answer: "==",
+          },
+          {
+            question:
+              "Which method is used to convert a string to an integer in Ruby?",
+            options: ["to_i", "to_int", "to_integer"],
+            answer: "to_i",
+          },
+          {
+            question:
+              "Which method is used to convert a string to a float in Ruby?",
+            options: ["to_f", "to_float", "to_double"],
+            answer: "to_f",
+          },
+          {
+            question:
+              "Which method is used to convert a value to a string in Ruby?",
+            options: ["to_s", "to_str", "to_string"],
+            answer: "to_s",
+          },
+          {
+            question:
+              "Which method is used to check if a value is an integer in Ruby?",
+            options: ["is_a?", "is_int?", "is_integer?"],
+            answer: "is_a?",
+          },
+        ],
+        medium: [
+          {
+            question:
+              "Which method is used to check if a value is a string in Ruby?",
+            options: ["is_a?", "is_str?", "is_string?"],
+            answer: "is_a?",
+          },
+          {
+            question:
+              "Which method is used to check if a value is an array in Ruby?",
+            options: ["is_a?", "is_array?", "is_list?"],
+            answer: "is_a?",
+          },
+          {
+            question:
+              "Which method is used to add an element to the end of an array in Ruby?",
+            options: ["push", "append", "add"],
+            answer: "push",
+          },
+          {
+            question:
+              "Which method is used to remove the last element from an array in Ruby?",
+            options: ["pop", "remove", "delete"],
+            answer: "pop",
+          },
+          {
+            question:
+              "Which method is used to add an element to the beginning of an array in Ruby?",
+            options: ["unshift", "prepend", "insert"],
+            answer: "unshift",
+          },
+          {
+            question:
+              "Which method is used to remove the first element from an array in Ruby?",
+            options: ["shift", "remove_first", "delete_first"],
+            answer: "shift",
+          },
+          {
+            question:
+              "Which method is used to join all elements of an array into a string in Ruby?",
+            options: ["join", "concat", "to_s"],
+            answer: "join",
+          },
+          {
+            question:
+              "Which method is used to sort the elements of an array in Ruby?",
+            options: ["sort", "order", "arrange"],
+            answer: "sort",
+          },
+          {
+            question:
+              "Which method is used to reverse the order of the elements of an array in Ruby?",
+            options: ["reverse", "backward", "flip"],
+            answer: "reverse",
+          },
+          {
+            question:
+              "Which method is used to find the index of an element in an array in Ruby?",
+            options: ["index", "find_index", "search"],
+            answer: "index",
+          },
+        ],
+        hard: [
+          {
+            question:
+              "Which method is used to remove an element from an array in Ruby?",
+            options: ["delete", "remove", "pop"],
+            answer: "delete",
+          },
+          {
+            question:
+              "Which method is used to create a new array from an existing array in Ruby?",
+            options: ["clone", "copy", "duplicate"],
+            answer: "clone",
+          },
+          {
+            question:
+              "Which method is used to merge two or more arrays in Ruby?",
+            options: ["concat", "merge", "combine"],
+            answer: "concat",
+          },
+          {
+            question:
+              "Which method is used to filter elements of an array in Ruby?",
+            options: ["select", "filter", "find"],
+            answer: "select",
+          },
+          {
+            question:
+              "Which method is used to map elements of an array in Ruby?",
+            options: ["map", "transform", "convert"],
+            answer: "map",
+          },
+          {
+            question:
+              "Which method is used to reduce elements of an array in Ruby?",
+            options: ["reduce", "compress", "minimize"],
+            answer: "reduce",
+          },
+          {
+            question:
+              "Which method is used to find an element in an array in Ruby?",
+            options: ["find", "search", "locate"],
+            answer: "find",
+          },
+          {
+            question:
+              "Which method is used to check if a value is a hash in Ruby?",
+            options: ["is_a?", "is_hash?", "is_map?"],
+            answer: "is_a?",
+          },
+          {
+            question:
+              "Which method is used to get the keys of a hash in Ruby?",
+            options: ["keys", "get_keys", "list_keys"],
+            answer: "keys",
+          },
+          {
+            question:
+              "Which method is used to get the values of a hash in Ruby?",
+            options: ["values", "get_values", "list_values"],
+            answer: "values",
+          },
+        ],
+      },
+
+      react: {
+        easy: [
+          {
+            question: "What does React stand for?",
+            options: ["React", "ReactJS", "ReactLang"],
+            answer: "React",
+          },
+          {
+            question: "Which method is used to create a React component?",
+            options: [
+              "React.createElement",
+              "React.createComponent",
+              "React.create",
+            ],
+            answer: "React.createElement",
+          },
+          {
+            question: "Which method is used to render a React component?",
+            options: ["ReactDOM.render", "React.render", "ReactDOM.create"],
+            answer: "ReactDOM.render",
+          },
+          {
+            question:
+              "Which method is used to create a state in a React component?",
+            options: ["useState", "createState", "setState"],
+            answer: "useState",
+          },
+          {
+            question: "Which method is used to create a context in React?",
+            options: ["createContext", "useContext", "setContext"],
+            answer: "createContext",
+          },
+          {
+            question: "Which method is used to create a ref in React?",
+            options: ["useRef", "createRef", "setRef"],
+            answer: "useRef",
+          },
+          {
+            question: "Which method is used to create an effect in React?",
+            options: ["useEffect", "createEffect", "setEffect"],
+            answer: "useEffect",
+          },
+          {
+            question: "Which method is used to create a memo in React?",
+            options: ["useMemo", "createMemo", "setMemo"],
+            answer: "useMemo",
+          },
+          {
+            question: "Which method is used to create a callback in React?",
+            options: ["useCallback", "createCallback", "setCallback"],
+            answer: "useCallback",
+          },
+          {
+            question: "Which method is used to create a reducer in React?",
+            options: ["useReducer", "createReducer", "setReducer"],
+            answer: "useReducer",
+          },
+        ],
+        medium: [
+          {
+            question:
+              "Which method is used to create a context provider in React?",
+            options: [
+              "Context.Provider",
+              "createContextProvider",
+              "setContextProvider",
+            ],
+            answer: "Context.Provider",
+          },
+          {
+            question:
+              "Which method is used to create a context consumer in React?",
+            options: [
+              "Context.Consumer",
+              "createContextConsumer",
+              "setContextConsumer",
+            ],
+            answer: "Context.Consumer",
+          },
+          {
+            question:
+              "Which method is used to create a forward ref in React?",
+            options: ["forwardRef", "createForwardRef", "setForwardRef"],
+            answer: "forwardRef",
+          },
+          {
+            question:
+              "Which method is used to create a lazy component in React?",
+            options: ["lazy", "createLazy", "setLazy"],
+            answer: "lazy",
+          },
+          {
+            question:
+              "Which method is used to create a suspense component in React?",
+            options: ["Suspense", "createSuspense", "setSuspense"],
+            answer: "Suspense",
+          },
+          {
+            question: "Which method is used to create a fragment in React?",
+            options: ["Fragment", "createFragment", "setFragment"],
+            answer: "Fragment",
+          },
+          {
+            question: "Which method is used to create a portal in React?",
+            options: ["createPortal", "usePortal", "setPortal"],
+            answer: "createPortal",
+          },
+          {
+            question: "Which method is used to create a profiler in React?",
+            options: ["Profiler", "createProfiler", "setProfiler"],
+            answer: "Profiler",
+          },
+          {
+            question:
+              "Which method is used to create a strict mode in React?",
+            options: ["StrictMode", "createStrictMode", "setStrictMode"],
+            answer: "StrictMode",
+          },
+          {
+            question: "Which method is used to create a transition in React?",
+            options: ["useTransition", "createTransition", "setTransition"],
+            answer: "useTransition",
+          },
+        ],
+        hard: [
+          {
+            question:
+              "Which method is used to create a concurrent mode in React?",
+            options: [
+              "ConcurrentMode",
+              "createConcurrentMode",
+              "setConcurrentMode",
+            ],
+            answer: "ConcurrentMode",
+          },
+          {
+            question:
+              "Which method is used to create a concurrent suspense in React?",
+            options: [
+              "ConcurrentSuspense",
+              "createConcurrentSuspense",
+              "setConcurrentSuspense",
+            ],
+            answer: "ConcurrentSuspense",
+          },
+          {
+            question:
+              "Which method is used to create a concurrent profiler in React?",
+            options: [
+              "ConcurrentProfiler",
+              "createConcurrentProfiler",
+              "setConcurrentProfiler",
+            ],
+            answer: "ConcurrentProfiler",
+          },
+          {
+            question:
+              "Which method is used to create a concurrent transition in React?",
+            options: [
+              "ConcurrentTransition",
+              "createConcurrentTransition",
+              "setConcurrentTransition",
+            ],
+            answer: "ConcurrentTransition",
+          },
+          {
+            question:
+              "Which method is used to create a concurrent strict mode in React?",
+            options: [
+              "ConcurrentStrictMode",
+              "createConcurrentStrictMode",
+              "setConcurrentStrictMode",
+            ],
+            answer: "ConcurrentStrictMode",
+          },
+          {
+            question:
+              "Which method is used to create a concurrent fragment in React?",
+            options: [
+              "ConcurrentFragment",
+              "createConcurrentFragment",
+              "setConcurrentFragment",
+            ],
+            answer: "ConcurrentFragment",
+          },
+          {
+            question:
+              "Which method is used to create a concurrent portal in React?",
+            options: [
+              "ConcurrentPortal",
+              "createConcurrentPortal",
+              "setConcurrentPortal",
+            ],
+            answer: "ConcurrentPortal",
+          },
+          {
+            question:
+              "Which method is used to create a concurrent context in React?",
+            options: [
+              "ConcurrentContext",
+              "createConcurrentContext",
+              "setConcurrentContext",
+            ],
+            answer: "ConcurrentContext",
+          },
+          {
+            question:
+              "Which method is used to create a concurrent ref in React?",
+            options: [
+              "ConcurrentRef",
+              "createConcurrentRef",
+              "setConcurrentRef",
+            ],
+            answer: "ConcurrentRef",
+          },
+          {
+            question:
+              "Which method is used to create a concurrent callback in React?",
+            options: [
+              "ConcurrentCallback",
+              "createConcurrentCallback",
+              "setConcurrentCallback",
+            ],
+            answer: "ConcurrentCallback",
+          },
+        ],
+      },
+
+      // Add remaining categories similarly with 20 questions each.
+    };
+
+    let selectedCategory = "";
+    let selectedLevel = "";
+    let currentQuestionIndex = 0;
+    let score = 0;
+    let timer;
+    let timeLeft = 30;
+    let totalQuestions = 0;
+    let correctAnswers = 0;
+    let accuracyData = []; // To store accuracy percentages for graph
+
+    let chartInstance; // Declare globally to reuse chart
+
+    function startQuiz(category) {
+      selectedCategory = category;
+      document.getElementById("category-selection").classList.add("d-none");
+      document.getElementById("level-selection").classList.remove("d-none");
+    }
+
+    function loadQuiz(level) {
+      selectedLevel = level;
+      document.getElementById("level-selection").classList.add("d-none");
+      document.getElementById("quiz-section").classList.remove("d-none");
+      totalQuestions = quizData[selectedCategory][selectedLevel].length;
+      displayQuestion();
+      startTimer();
+    }
+
+    function displayQuestion() {
+      const questionData = quizData[selectedCategory][selectedLevel][currentQuestionIndex];
+      document.getElementById("question").innerText = questionData.question;
+      const answersDiv = document.getElementById("answers");
+      answersDiv.innerHTML = "";
+      questionData.options.forEach(option => {
+        const button = document.createElement("button");
+        button.classList.add("btn", "btn-outline-secondary");
+        button.innerText = option;
+        button.onclick = () => checkAnswer(option);
+        answersDiv.appendChild(button);
+      });
+    }
+
+    function checkAnswer(selectedOption) {
+      const questionData = quizData[selectedCategory][selectedLevel][currentQuestionIndex];
+      if (selectedOption === questionData.answer) {
+        score++;
+        correctAnswers++;
+      }
+      nextQuestion();
+    }
+
+    function nextQuestion() {
+      clearInterval(timer);
+      timeLeft = 30;
+      document.getElementById("progress-bar").style.width = "100%";
+
+      if (currentQuestionIndex < totalQuestions - 1) {
+        currentQuestionIndex++;
+        displayQuestion();
+        startTimer();
+      } else {
+        showResults();
+      }
+    }
+
+    function startTimer() {
+      const progressBar = document.getElementById("progress-bar");
+      timer = setInterval(() => {
+        if (timeLeft > 0) {
+          timeLeft--;
+          document.getElementById("timer").innerText = `Time Left: ${timeLeft}s`;
+          progressBar.style.width = `${(timeLeft / 30) * 100}%`;
+        } else {
+          nextQuestion();
+        }
+      }, 1000);
+    }
+
+    function showResults() {
+      document.getElementById("quiz-section").classList.add("d-none");
+      document.getElementById("result-section").classList.remove("d-none");
+      document.getElementById("score").innerText = `${score} / ${totalQuestions}`;
+      const accuracy = ((correctAnswers / totalQuestions) * 100).toFixed(2);
+      accuracyData.push(parseFloat(accuracy)); // Push as a number for consistency
+      renderChart();
+    }
+
+    function renderChart() {
+      const ctx = document.getElementById('myChart').getContext('2d');
+
+      if (chartInstance) {
+        chartInstance.destroy(); // Destroy the previous instance before creating a new one
+      }
+
+      chartInstance = new Chart(ctx, {
+        type: 'line',
+        data: {
+          labels: accuracyData.map((_, index) => `Attempt ${index + 1}`),
+          datasets: [{
+            label: 'Accuracy (%)',
+            data: accuracyData,
+            borderColor: '#00adb5',
+            backgroundColor: 'rgba(0, 173, 181, 0.2)',
+            borderWidth: 3,
+            tension: 0.4,
+          }],
+        },
+        options: {
+          responsive: true,
+          plugins: {
+            legend: {
+              display: false
+            },
+          },
+          scales: {
+            y: {
+              beginAtZero: true,
+              max: 100,
+              ticks: {
+                color: '#eaeaea',
+              },
+              grid: {
+                color: '#444',
+              }
+            },
+            x: {
+              ticks: {
+                color: '#eaeaea',
+              },
+              grid: {
+                display: false,
+              }
+            }
+          }
+        }
+      });
+    }
+
+    function restartQuiz() {
+      document.getElementById("result-section").classList.add("d-none");
+      document.getElementById("category-selection").classList.remove("d-none");
+      currentQuestionIndex = 0;
+      score = 0;
+      correctAnswers = 0;
+      timeLeft = 30;
+    }
+  </script>
+</body>
+
+</html>
